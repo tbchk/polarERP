@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys
 from PlotterCanvas import MyMplCanvas as Plotter
-from PyQt5.QtWidgets import QHBoxLayout
+from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout
 from PyQt5.QtWidgets import QMainWindow, QAction, qApp, QApplication
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QStatusBar
@@ -52,7 +52,7 @@ class MainWindow(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
 
-        h_box = QHBoxLayout()
+        h_box = QVBoxLayout()
         central_widget.setLayout(h_box)
         h_box.addWidget(self.plt)
 
