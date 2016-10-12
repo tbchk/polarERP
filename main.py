@@ -32,8 +32,8 @@ class MainWindow(QMainWindow):
     def init_ui(self):
         # Setup the actions =======================================================
         # Open Action
-        open_action = QAction(QIcon('Resources/Icons/fileopen.png'), 'Open &ERP data', self)
-        open_action.setStatusTip('Open Data')
+        open_action = QAction(QIcon('Resources/Icons/fileopen.png'), 'Load &ERP data', self)
+        open_action.setStatusTip('Open Data Samples')
         open_action.triggered.connect(self.menu_open)
         # Exit Action
         exit_action = QAction(QIcon('Resources/Icons/exit.png'), '&Exit', self)

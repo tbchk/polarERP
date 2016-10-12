@@ -33,3 +33,25 @@ class DataObject:
 
     def get_sample(self, key):
         return self.data_mean.get(key)
+
+
+class PolarConverter:
+    def __init__(self, data, x_range=60, y_min=0.2):
+        self.sample_data = data
+        self.sample_x_range = x_range
+        self.sample_y_min = y_min
+
+    def set_parameters(self, x_range, y_min):
+        self.sample_x_range = x_range
+        self.sample_y_min = y_min
+
+    @staticmethod
+    def read_in_chunks(seq, size):
+        return (seq[pos:pos + size] for pos in range(0, len(seq), size))
+
+    def create_dataset(self):
+        amplitude = []
+        n = np.ceil(len(self.sample_data)/self.sample_x_range)
+        for chunk in self.read_in_chunks(self.sample_data, self.sample_x_range):
+            amplitude.append(np.mean(chunk))
+        return n, amplitude
