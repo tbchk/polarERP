@@ -4,6 +4,9 @@ import scipy.io as sio
 import numpy as np
 general_file_keys = ['__version__', '__header__', '__globals__']
 
+COLOR_RED = [1, 0, 0]
+COLOR_BLUE = [0, 0, 1]
+
 
 class DataObject:
     def __init__(self, file):
@@ -34,10 +37,16 @@ class DataObject:
     def get_sample(self, key):
         return self.data_mean.get(key)
 
+    def get_shape_by_key(self, key):
+        return np.shape(self.data_mean.get(key))
+
+    @staticmethod
+    def get_shape(data):
+        return np.shape(data)
+
 
 class PolarConverter:
-    def __init__(self, data, x_range=60, y_min=0.2):
-        self.sample_data = data
+    def __init__(self, x_range=60, y_min=0.2):
         self.sample_x_range = x_range
         self.sample_y_min = y_min
 
@@ -49,9 +58,26 @@ class PolarConverter:
     def read_in_chunks(seq, size):
         return (seq[pos:pos + size] for pos in range(0, len(seq), size))
 
-    def create_dataset(self):
+    # Create a mean per range data set, like a bar set of the data
+    def polar_scatter_conversion(self, data):
         amplitude = []
-        n = np.ceil(len(self.sample_data)/self.sample_x_range)
-        for chunk in self.read_in_chunks(self.sample_data, self.sample_x_range):
-            amplitude.append(np.mean(chunk))
-        return n, amplitude
+        time = []
+        color = []
+        n = 0
+        for chunk in self.read_in_chunks(data, self.sample_x_range):
+            amp_value = np.mean(chunk)
+            if abs(amp_value) < self.sample_y_min:
+                n += 1
+                continue
+
+            amplitude.append(amp_value)
+            n += 1
+            time.append((n-1)*self.sample_x_range + self.sample_x_range/2.0)
+
+            if amp_value >= 0:
+                color.append(COLOR_BLUE)
+            else:
+                color.append(COLOR_RED)
+
+        # Return a Normalized absolute amplitude
+        return time, amplitude, color
