@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys
 
+from PyQt5.QtWidgets import QCheckBox
 from PyQt5.QtWidgets import QDoubleSpinBox
 from PyQt5.QtWidgets import QGroupBox
 from PyQt5.QtWidgets import QRadioButton
@@ -23,6 +24,7 @@ from PyQt5.QtGui import QIcon
 FAC_AMP = 200
 TIME_MAX = 400
 
+
 # noinspection PyArgumentList
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -34,6 +36,7 @@ class MainWindow(QMainWindow):
         self.label_panel_title = QLabel('<b>Samples Panel</b>')
 
         self.plt = Plotter(self)
+        self.active_plt = False
         self.init_ui()
 
     def init_ui(self):
@@ -106,6 +109,12 @@ class MainWindow(QMainWindow):
         self.radio_mode2.setText('Head Order')
         self.radio_mode1.setChecked(True)
 
+        self.grid_checkbox = QCheckBox()
+        self.grid_checkbox.setText('Show Grid')
+        self.grid_checkbox.setChecked(True)
+
+        self.grid_checkbox.clicked.connect(self.grid_selection)
+
         layout_params.addLayout(layout_amplitude)
         layout_params.addLayout(layout_time)
         layout_params.addWidget(self.radio_mode1)
@@ -116,6 +125,7 @@ class MainWindow(QMainWindow):
         panel_layout.addWidget(self.samples_list_widget)
         panel_layout.addWidget(param_gb)
         panel_layout.addStretch(1)
+        panel_layout.addWidget(self.grid_checkbox)
         panel_layout.addWidget(self.button_process)
 
         central_widget = QWidget()
@@ -132,10 +142,18 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('Visual ERP')
 
         self.button_process.clicked.connect(self.plot_sample)
-
+        self.showMaximized()
         self.show()
         # For debug purposes
         self.menu_open()
+
+    def grid_selection(self, state):
+        if not self.active_plt:
+            return
+        self.plt.plotter.grid(state)
+        self.plt.plotter.axes.get_xaxis().set_visible(state)
+        self.plt.plotter.axes.get_yaxis().set_visible(state)
+        self.plt.draw()
 
     def item_selected(self, item):
         # TODO: Manage changes in selection with keys
@@ -161,6 +179,7 @@ class MainWindow(QMainWindow):
         self.status_bar.showMessage('Plotting (%s), Please wait ...' % sample_title)
         self.plot_mode1(self.data_object.get_sample(sample_title))
         self.status_bar.showMessage('Plotting (%s), Done.' % sample_title)
+        self.active_plt = True
 
     def plot_mode1(self, data):
         time_interval = self.spinbox_params1.value()
@@ -172,18 +191,29 @@ class MainWindow(QMainWindow):
 
         # [Time, Amplitude] vectors
         angle = 0
+        ch = 1
+        angles = np.arange(0., 2*3.1416, angle_interval*3.1416/180)
         # big_plot = []
+        model1_labels = []
         for channel in data:
             polar_data = pc.polar_scatter_conversion(channel)
             r = polar_data[0]
             theta = np.ones([1, len(r)]) * angle * np.pi / 180.0
             size = np.abs(polar_data[1]) * FAC_AMP
             color = polar_data[2]
+            model1_labels.append('[%i]' % ch)
 
             # big_plot.append([theta, r, size, color])
             self.plt.plot_scatter(theta, r, size, color)
             angle += angle_interval
+            ch += 1
 
+        self.plt.plotter.set_ylim(0, shape[1]+100)
+        self.plt.plotter.set_xticks(angles)
+        self.plt.plotter.set_xticklabels(model1_labels)
+
+        self.grid_selection(self.grid_checkbox.isChecked())
+        self.plt.draw()
         # for dot in big_plot:
         #    self.plt.plot_scatter(dot[0], dot[1], dot[2], dot[3])
 
